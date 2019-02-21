@@ -1,17 +1,33 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        String port = "8999";
-        //TODO
-
         System.out.println("Enter your name:");
         String name = new Scanner(System.in).nextLine();
         System.out.println("Enter your ip:");
         String ip = new Scanner(System.in).nextLine();
+        System.out.println("Enter your port:");
+        Integer port = new Scanner(System.in).nextInt();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try (ServerSocket server = new ServerSocket(port)) {
+                    while (true) {
+                        Socket s = server.accept();
+                        ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
+                        System.out.println("Message from " + ois.readObject());
+                        ois.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
         while(true){
             try {
@@ -23,10 +39,10 @@ public class Main {
                 ObjectOutputStream oos =
                         new ObjectOutputStream(s.getOutputStream());
                 if("reg".equals(message)){
-                    oos.writeObject(message);
+                    oos.writeObject("reg");
                     oos.writeObject(name);
                     oos.writeObject(ip);
-                    oos.writeObject(port);
+                    oos.writeObject(port.toString());
                     ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
                     String answer = (String) ois.readObject();
                     ois.close();
